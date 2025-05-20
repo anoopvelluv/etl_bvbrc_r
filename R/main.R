@@ -101,5 +101,4 @@ pipeline_main <- function(){
     clear_temp_folder(GENOME_OUTPUT_TEMP_FOLDER)
     message("Data Ingestion Completed. Please check logs for details")
 }
-
 pipeline_main()
