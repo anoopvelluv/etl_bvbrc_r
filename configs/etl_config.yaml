@@ -1,0 +1,2 @@
+top_n_genomes_to_ingest : 10
+ftp_connection_timeout : 120
