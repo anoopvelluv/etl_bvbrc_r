@@ -73,7 +73,7 @@ ingest_patric_genomes <- function(genome_ids,
         if(isTRUE(status)){
           message_text <- sprintf(
             "pull_PATRIC_genome : Genome Ingestion completed for %s. Status: %s",
-            genome_id,
+            genome_ids[[i]],
             ifelse(status, "SUCCESS", "FAILURE")
           )
           log4r::info(logger, message_text)
