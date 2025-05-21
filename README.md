@@ -8,9 +8,3 @@ To execute the pipeline manually, run the following command:
 ```bash
 Rscript etl_bvbrc_r/R/pipeline_main.R
 
-
-```
-To automate the pipeline execution daily at 2:00 AM, add the following line to your crontab:
-```cron
-0 2 * * * Rscript /full/path/to/etl_bvbrc_r/R/main.R >> /full/path/to/logs/etl_bvbrc.log 2>&1
-
