@@ -1,0 +1,16 @@
+INFO  [2025-05-21 10:13:24] Loaded Parameters 
+top_n_genomes_to_ingest: 10
+ftp_connection_timeout: 120
+
+INFO  [2025-05-21 10:13:26] Patric DB : File not updated in server, Skipping Data Ingestion 
+INFO  [2025-05-21 10:13:26] Pulling  top 10 genome ids from Patric DB 
+INFO  [2025-05-21 10:13:33] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144637
+INFO  [2025-05-21 10:13:35] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144676
+INFO  [2025-05-21 10:13:38] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144681
+INFO  [2025-05-21 10:13:41] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144712
+INFO  [2025-05-21 10:13:43] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144725
+INFO  [2025-05-21 10:13:46] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144781
+INFO  [2025-05-21 10:13:48] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144805
+INFO  [2025-05-21 10:13:51] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144810
+INFO  [2025-05-21 10:13:54] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144883
+INFO  [2025-05-21 10:13:56] Genome Ingestion : File not updated in server, Skipping Data Ingestion  Genome Id : 562.144895

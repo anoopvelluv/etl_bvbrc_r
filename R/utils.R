@@ -68,3 +68,14 @@ clear_temp_folder <- function(folder_path) {
   file.remove(files_to_remove)
 }
 
+replace_file <- function(src, dest) {
+  if (file.exists(dest)) {
+    file.remove(dest)
+  }
+  
+  success <- file.copy(src, dest, overwrite = TRUE)
+  
+  if (!success) {
+    stop(sprintf("Failed to copy file from %s to %s", src, dest))
+  }
+}

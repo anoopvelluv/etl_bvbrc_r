@@ -1,4 +1,5 @@
 library(MIC)
+library(glue)
 
 source(here::here("R/utils.R"))
 source(here::here("R/constants.R"))
@@ -36,9 +37,7 @@ ingest_patric_data <- function(logger,
     # Log result and exit loop if successful
     if (isTRUE(status)) {
       log4r::info(logger,paste0("Patric DB :Data Ingested successfully on attempt ", i))
-      file.remove(PATRIC_DATA_PATH)
-      file.copy(TEMP_PATRIC_PATH, PATRIC_DATA_PATH)
-      log4r::info(logger, paste0("Patric DB : Data moved to \n", PATRIC_DATA_PATH ))
+      replace_file(TEMP_PATRIC_PATH, PATRIC_DATA_PATH)
       update_wal(PATRIC_FTP_FILE, ftp_file_meta$latest_mod_time) 
       break
     } else {
@@ -71,15 +70,12 @@ ingest_patric_genomes <- function(genome_ids,
                                      genome_ids[[i]])
         
         if(isTRUE(status)){
-          message_text <- sprintf(
-            "pull_PATRIC_genome : Genome Ingestion completed for %s. Status: %s",
-            genome_ids[[i]],
-            ifelse(status, "SUCCESS", "FAILURE")
-          )
+          status_text <- if (status) "SUCCESS" else "FAILURE"
+          message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
           log4r::info(logger, message_text)
-          file.remove(file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
-          file.copy(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
-                    file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
+          
+          replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
+                       file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
           
           update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
           break
