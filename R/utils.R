@@ -73,8 +73,12 @@ is_file_updated_in_ftp<- function(ftp_dir,
 }
 
 clear_temp_folder <- function(folder_path) {
-  files_to_remove <- list.files(folder_path, full.names = TRUE)
-  file.remove(files_to_remove)
+  if(!dir.exists(folder_path) && file.exists(folder_path)){
+    file.remove(folder_path)
+  }else{
+    files_to_remove <- list.files(folder_path, full.names = TRUE)
+    file.remove(files_to_remove)
+  }
 }
 
 replace_file <- function(src, dest) {
