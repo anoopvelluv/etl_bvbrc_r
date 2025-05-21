@@ -83,6 +83,7 @@ ingest_patric_genomes <- function(genome_ids,
         else{
           log4r::info(logger,paste0("pull_PATRIC_genome : Error during ingestion on attempt ", j, ": ", e$message))
           log4r::info(logger,"Retrying...")
+          Sys.sleep(2)  #Wait before retrying
         }
       }
     }else{
