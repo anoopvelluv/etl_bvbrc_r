@@ -1,38 +1,5 @@
 
 #Customized function from MIC package for more control
-pull_PATRIC_genome <- function(output_directory, 
-                               genome_id) {
-  
-    status <- TRUE
-    
-    genome_path <- glue::glue(
-    "ftp://ftp.patricbrc.org/genomes/{genome_id}/{genome_id}.fna"
-    )
-    
-    target_path <- file.path(output_directory,
-                           glue::glue("{genome_id}.fna"))
-    
-    
-    if (file.exists(target_path)) {
-      message(glue::glue("Genome {genome_id} already exists"))
-    } else {
-      message(glue::glue("Downloading file..."))
-      message(genome_path)
-      message(target_path)
-      tryCatch(utils::download.file(genome_path,
-                                    destfile = target_path,
-                                    mode = "wb"),
-               error = function(e) {
-                 status <- FALSE
-                 message(glue::glue("Unable to download {genome_id}"))
-               }
-      )
-    }
-    return(status)
-}
-
-
-#Customized function from MIC package for more control
 get_genome_ids <- function(taxonomic_name = NULL,
                             database = patric_ftp_path,
                             filter = "MIC") {
@@ -66,4 +33,37 @@ get_genome_ids <- function(taxonomic_name = NULL,
     genome_ids <- unique(filtered_data$genome_id)
 }
 
+#Customized function from MIC package for more control
+pull_PATRIC_genome <- function(output_directory, 
+                               genome_id) {
+  
+  genome_path <- glue::glue(
+    "ftp://ftp.patricbrc.org/genomes/{genome_id}/{genome_id}.fna"
+  )
+  
+  target_path <- file.path(output_directory,
+                           glue::glue("{genome_id}.fna"))
+  
+  
+  if (file.exists(target_path)) {
+    message(glue::glue("Genome {genome_id} already exists"))
+    return(TRUE)
+  } else {
+    message(glue::glue("Downloading file..."))
+    message(genome_path)
+    status <- tryCatch(
+      {
+        utils::download.file(genome_path,
+                             destfile = target_path,
+                             mode = "wb")
+        TRUE
+      },
+      error = function(e) {
+        message(glue::glue("Unable to download {genome_id}"))
+        FALSE
+      }
+    )
+  }
+  return(status)
+}
 

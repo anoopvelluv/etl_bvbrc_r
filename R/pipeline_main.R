@@ -117,6 +117,8 @@ pipeline_main <- function(){
                           logger,
                           retry = 2,
                           config$ftp_connection_timeout)
+    
+    log4r::info(logger, "Data Ingestion Completed.")
     message("Data Ingestion Completed. Please check logs for details")
 }
 pipeline_main()
