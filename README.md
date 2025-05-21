@@ -6,7 +6,7 @@ Welcome to the ETL script to load BV-BRC genome files from the FTP path:
 To execute the pipeline manually, run the following command:
 
 ```bash
-Rscript etl_bvbrc_r/R/main.R
+Rscript etl_bvbrc_r/R/pipeline_main.R
 
 
 ```
