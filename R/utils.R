@@ -19,13 +19,15 @@ parse_ftp_line <- function(lines, file_name) {
   }
   if (is.na(mod_time)) return(NULL)
   
-  list(filename = filename, mod_time = mod_time)
+  list(filename = filename, last_modified = mod_time)
 }
 
 # Load WAL
 load_wal <- function(path) {
   if (file.exists(path)) {
-    read.csv(path, stringsAsFactors = FALSE)
+    wal <- read.csv(path, stringsAsFactors = FALSE)
+    wal$last_modified <- as.POSIXct(wal$last_modified, tz = "GMT")
+    wal
   } else {
     data.frame(filename = character(), last_modified = as.POSIXct(character()), stringsAsFactors = FALSE)
   }
@@ -65,9 +67,9 @@ is_file_updated_in_ftp<- function(ftp_dir,
   wal <- load_wal(WAL_PATH)
   prev_meta <- wal[wal$file == ftp_file, ]
   
-  change_detected <- ifelse(nrow(prev_meta) == 0 || prev_meta$mod_time != meta_now$mod_time,TRUE,FALSE)
+  change_detected <- ifelse(nrow(prev_meta) == 0 || prev_meta$last_modified != meta_now$last_modified,TRUE,FALSE)
   
-  return(list(change_detected = change_detected, latest_mod_time = meta_now$mod_time))
+  return(list(change_detected = change_detected, latest_mod_time = meta_now$last_modified))
 }
 
 clear_temp_folder <- function(folder_path) {
