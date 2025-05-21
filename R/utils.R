@@ -51,7 +51,14 @@ is_file_updated_in_ftp<- function(ftp_dir,
                            ftp_file){
   
   # Get directory listing
-  listing <- getURL(ftp_dir, dirlistonly = FALSE)
+  listing <- tryCatch(
+    {
+      getURL(ftp_dir, dirlistonly = FALSE)
+    },
+    error = function(e) {
+      stop("Failed to collect metadata. Exiting.")
+    }
+  )
   
   meta_now <- parse_ftp_line(listing, ftp_file)
   

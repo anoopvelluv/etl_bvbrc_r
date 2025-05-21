@@ -91,7 +91,6 @@ ingest_patric_genomes <- function(genome_ids,
     i <- i + 1
   }
   clear_temp_folder(GENOME_OUTPUT_TEMP_FOLDER)
-  
 }
 
 pipeline_main <- function(){
