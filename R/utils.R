@@ -94,7 +94,9 @@ replace_file <- function(src, dest) {
   }
 }
 
-read_patric_db <- function(patric_db, mo_name) {
+read_patric_db <- function(patric_db, 
+                           mo_name,
+                           logger) {
   # Standardize microorganism name
   mo_name <- AMR::mo_name(mo_name)
   
@@ -105,9 +107,10 @@ read_patric_db <- function(patric_db, mo_name) {
   mo_standard_mapping <- readRDS(MO_STD_MAPPING)
   
   #Re-calculate standard mapping file
-  # if (!(mo_name %in% mo_standard_mapping$std_mo_name)) {
-  #   mo_standard_mapping <- update_standard_mapping(patric_database)
-  # }
+  if (!(mo_name %in% mo_standard_mapping$std_mo_name)) {
+    log4r::info(logger, paste0("Missing ",mo_name," in standard mapping file. Re - calculating standard mapping file."))
+    mo_standard_mapping <- update_standard_mapping(patric_database)
+  }
   
   # Join PATRIC data with standard mapping on genome_name
   patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")

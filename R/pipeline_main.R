@@ -136,7 +136,8 @@ pipeline_main <- function(){
     for(mo_name in config$micro_organisms){
       
       patric_data <- read_patric_db(patric_db = PATRIC_DATA_PATH,
-                                    mo_name = mo_name)
+                                    mo_name = mo_name,
+                                    logger)
       
       genome_ids <- get_genome_ids(database = patric_data,
                                    filter = "MIC")
