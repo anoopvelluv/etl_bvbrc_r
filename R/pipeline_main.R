@@ -58,7 +58,7 @@ ingest_patric_genomes <- function(mo_name,
   
   options(timeout=timeout_secs)
   
-  if (is.na(n_genomes_to_ingest) || length(n_genomes_to_ingest) == 0) {
+  if (is.na(n_genomes_to_ingest) || length(n_genomes_to_ingest) == 0 || length(genome_ids) < n_genomes_to_ingest ) {
     n_genomes_to_ingest <- length(genome_ids)
   }
   
