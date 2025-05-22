@@ -1,4 +1,4 @@
-top_n_genomes_to_ingest : 10 #pass empty value to ingest full set available
+top_n_genomes_to_ingest : 10 
 ftp_connection_timeout : 120
 
 

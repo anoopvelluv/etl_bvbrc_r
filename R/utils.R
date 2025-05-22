@@ -104,6 +104,11 @@ read_patric_db <- function(patric_db, mo_name) {
   # Load mapping of genome names to standard microorganism names
   mo_standard_mapping <- readRDS(MO_STD_MAPPING)
   
+  #Re-calculate standard mapping file
+  if (any(!mo_name %in% mo_standard_mapping$genome_name)) {
+    mo_standard_mapping <- update_standard_mapping(patric_database)
+  }
+  
   # Join PATRIC data with standard mapping on genome_name
   patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
   
@@ -111,6 +116,19 @@ read_patric_db <- function(patric_db, mo_name) {
   patric_database <- patric_database[patric_database$std_mo_name == mo_name, ]
   
   return(patric_database)
+}
+
+#Update standard mo mapping file if found new genome name
+update_standard_mapping <- function(database) {
+  unique_genome_names <- unique(database$genome_name)
+  std_mapping <- data.frame(
+    genome_name = unique_genome_names,
+    std_mo_name = AMR::mo_name(unique_genome_names),
+    stringsAsFactors = FALSE
+  )
+  
+  writeRDS(std_mapping, MO_STD_MAPPING)
+  return(std_mapping)
 }
 
 setup_genome_folders <- function(base_output_folder, base_temp_folder, mo_name) {
