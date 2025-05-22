@@ -104,8 +104,8 @@ read_patric_db <- function(patric_db, mo_name) {
   # Load mapping of genome names to standard microorganism names
   mo_standard_mapping <- readRDS(MO_STD_MAPPING)
   
-  # #Re-calculate standard mapping file
-  if ( ! mo_name %in% mo_standard_mapping$std_mo_name ) {
+  #Re-calculate standard mapping file
+  if (!(mo_name %in% mo_standard_mapping$std_mo_name)) {
     mo_standard_mapping <- update_standard_mapping(patric_database)
   }
   
