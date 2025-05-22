@@ -105,9 +105,9 @@ read_patric_db <- function(patric_db, mo_name) {
   mo_standard_mapping <- readRDS(MO_STD_MAPPING)
   
   # #Re-calculate standard mapping file
-  # if ( ! mo_name %in% mo_standard_mapping$genome_name ) {
-  #   mo_standard_mapping <- update_standard_mapping(patric_database)
-  # }
+  if ( ! mo_name %in% mo_standard_mapping$std_mo_name ) {
+    mo_standard_mapping <- update_standard_mapping(patric_database)
+  }
   
   # Join PATRIC data with standard mapping on genome_name
   patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
