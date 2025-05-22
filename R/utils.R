@@ -82,6 +82,7 @@ clear_temp_folder <- function(folder_path) {
 }
 
 replace_file <- function(src, dest) {
+  
   if (file.exists(dest)) {
     file.remove(dest)
   }
@@ -91,4 +92,37 @@ replace_file <- function(src, dest) {
   if (!success) {
     stop(sprintf("Failed to copy file from %s to %s", src, dest))
   }
+}
+
+read_patric_db <- function(patric_db, mo_name) {
+  # Standardize microorganism name
+  mo_name <- AMR::mo_name(mo_name)
+  
+  # Load the PATRIC database
+  patric_database <- MIC::load_patric_db(patric_db)
+  
+  # Load mapping of genome names to standard microorganism names
+  mo_standard_mapping <- readRDS(MO_STD_MAPPING)
+  
+  # Join PATRIC data with standard mapping on genome_name
+  patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
+  
+  # Filter rows matching the standardized microorganism name
+  patric_database <- patric_database[patric_database$std_mo_name == mo_name, ]
+  
+  return(patric_database)
+}
+
+setup_genome_folders <- function(base_output_folder, base_temp_folder, mo_name) {
+  mo_name <-  stringr::str_replace_all(mo_name, " ", "_")
+  genome_output_folder <- file.path(base_output_folder, mo_name)
+  genome_temp_folder <- file.path(base_temp_folder, mo_name)
+  
+  dir.create(genome_output_folder, recursive = TRUE, showWarnings = FALSE)
+  dir.create(genome_temp_folder, recursive = TRUE, showWarnings = FALSE)
+  
+  return(list(
+    GENOME_OUTPUT_FOLDER = genome_output_folder,
+    GENOME_OUTPUT_TEMP_FOLDER = genome_temp_folder
+  ))
 }

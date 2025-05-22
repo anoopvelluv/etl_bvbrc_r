@@ -1,2 +1,14 @@
-top_n_genomes_to_ingest : 10
+top_n_genomes_to_ingest : 10 #pass empty value to ingest full set available
 ftp_connection_timeout : 120
+
+
+micro_organisms :
+   - "Escherichia coli"
+   - "Staphylococcus aureus"
+   - "Streptococcus pneumoniae"
+   - "Pseudomonas aeruginosa"
+   - "Klebsiella pneumoniae"
+   - "Candida albicans"
+   - "Clostridioides difficile"
+   - "Neisseria meningitidis"
+   - "Mycobacterium tuberculosis"

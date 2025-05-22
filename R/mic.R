@@ -1,7 +1,7 @@
 
 #Customized function from MIC package for more control
 get_genome_ids <- function(taxonomic_name = NULL,
-                            database = patric_ftp_path,
+                            database = patric_db_path,
                             filter = "MIC") {
     supported_modality_filters <- c("all", "mic", "disc")
     filter <- tolower(filter)

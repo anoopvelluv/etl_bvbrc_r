@@ -49,13 +49,25 @@ ingest_patric_data <- function(logger,
   return(status)
 }
 
-ingest_patric_genomes <- function(genome_ids,
+ingest_patric_genomes <- function(mo_name,
+                                  genome_ids,
                                   n_genomes_to_ingest = 10,
                                   logger,
                                   retry = 2,
                                   timeout_secs = 120){
   
   options(timeout=timeout_secs)
+  
+  if (is.na(n_genomes_to_ingest) || length(n_genomes_to_ingest) == 0) {
+    n_genomes_to_ingest <- length(genome_ids)
+  }
+  
+  
+  #Creating microorganism specific directories
+  genome_folders <- setup_genome_folders(GENOME_OUTPUT_FOLDER, GENOME_OUTPUT_TEMP_FOLDER, mo_name)
+  GENOME_OUTPUT_FOLDER <- genome_folders$GENOME_OUTPUT_FOLDER
+  GENOME_OUTPUT_TEMP_FOLDER <- genome_folders$GENOME_OUTPUT_TEMP_FOLDER
+    
   i <- 1
   while (i <= n_genomes_to_ingest) {
     
@@ -69,15 +81,27 @@ ingest_patric_genomes <- function(genome_ids,
         status <- pull_PATRIC_genome(GENOME_OUTPUT_TEMP_FOLDER,
                                      genome_ids[[i]])
         
+        status_text <- if (status) "SUCCESS" else "FAILURE"
+        
         if(isTRUE(status)){
-          status_text <- if (status) "SUCCESS" else "FAILURE"
-          message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
-          log4r::info(logger, message_text)
           
-          replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
-                       file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
+          downloaded_file <- file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna"))
+          target_path <-  file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
           
-          update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
+          if (file.exists(downloaded_file)) {
+            
+            replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
+                         file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
+            
+            update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
+            
+            message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
+            log4r::info(logger, message_text)
+          }else{
+            
+            message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed. but seems like file is empty. No file downloaded -  {genome_ids[[i]]}")
+            log4r::info(logger, message_text)
+          }
           break
         }
         else{
@@ -109,15 +133,22 @@ pipeline_main <- function(){
     
     
     #Genome Ingestion Logic###############
-    log4r::info(logger, paste0("Pulling  top ", config$top_n_genomes_to_ingest," genome ids from Patric DB "))
-    genome_ids <- get_genome_ids(database = PATRIC_DATA_PATH,
-                   filter = "MIC")
-  
-    ingest_patric_genomes(genome_ids,
-                          config$top_n_genomes_to_ingest,
-                          logger,
-                          retry = 2,
-                          config$ftp_connection_timeout)
+    for(mo_name in config$micro_organisms){
+      
+      patric_data <- read_patric_db(patric_db = PATRIC_DATA_PATH,
+                                    mo_name = mo_name)
+      
+      genome_ids <- get_genome_ids(database = patric_data,
+                                   filter = "MIC")
+      message(paste0("Pulling data for genome : ", mo_name))
+      log4r::info(logger, paste0("Pulling  top ", config$top_n_genomes_to_ingest," genome ids from Patric DB. Micro Organism : ",mo_name))
+      ingest_patric_genomes(mo_name,
+                            genome_ids,
+                            config$top_n_genomes_to_ingest,
+                            logger,
+                            retry = 2,
+                            config$ftp_connection_timeout)
+    }
     log4r::info(logger, "Data Ingestion Completed.  ")
     message("Data Ingestion Completed. Please check logs for details")
 }
