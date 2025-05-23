@@ -93,15 +93,14 @@ ingest_patric_genomes <- function(mo_name,
             replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
                          file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
             
-            update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
-            
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
             log4r::info(logger, message_text)
-          }else{
             
+          }else{
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed. but seems like file is empty. No file downloaded -  {genome_ids[[i]]}")
             log4r::info(logger, message_text)
           }
+          update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
           break
         }
         else{
