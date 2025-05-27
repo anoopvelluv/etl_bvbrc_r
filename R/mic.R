@@ -1,5 +1,30 @@
 
 #Customized function from MIC package for more control
+
+#' Retrieve Genome IDs from PATRIC Database
+#'
+#' This function extracts genome IDs from a PATRIC antimicrobial resistance (AMR) database,
+#' optionally filtered by taxonomic name and measurement modality.
+#'
+#' @param taxonomic_name Character string. Optional. A pattern to filter genome names by taxonomic name.
+#'        If NULL, no filtering on taxonomic name is performed.
+#' @param database Either a `patric_db` object or a file path to the PATRIC AMR database.
+#'        Default is `patric_db_path`.
+#' @param filter Character string. Filter to apply based on measurement modality.
+#'        Options are `"all"`, `"mic"`, or `"disc"`. Case-insensitive.
+#'        `"mic"` filters for MIC measurements (`measurement_unit == "mg/L"`),
+#'        `"disc"` filters for disk diffusion tests (`laboratory_typing_method == "Disk diffusion"`),
+#'        and `"all"` applies no filtering. Default is `"MIC"`.
+#'
+#' @return A character vector of unique genome IDs matching the criteria.
+#'
+#' @details
+#' The function supports filtering based on measurement modality: MIC values (minimum inhibitory concentration),
+#' disk diffusion, or all data. The `taxonomic_name` supports partial matching using `grep`.
+#'
+#' If the `database` argument is a file path, the function will load it using `load_patric_db()`.
+#' If the database is already a `patric_db` object, it uses it directly.
+#'
 get_genome_ids <- function(taxonomic_name = NULL,
                             database = patric_db_path,
                             filter = "MIC") {
@@ -34,6 +59,24 @@ get_genome_ids <- function(taxonomic_name = NULL,
 }
 
 #Customized function from MIC package for more control
+#' Download a PATRIC Genome FASTA File
+#'
+#' Downloads the genome FASTA file for a specified genome ID from the PATRIC FTP server
+#' and saves it to a given output directory.
+#'
+#' @param output_directory Character string. The directory where the genome FASTA file
+#'        will be saved.
+#' @param genome_id Character string. The genome ID corresponding to the PATRIC genome
+#'        to download.
+#'
+#' @return Logical. Returns `TRUE` if the genome file already exists or if the download
+#'         is successful. Returns `FALSE` if the download fails.
+#'
+#' @details
+#' This function constructs the FTP URL based on the genome ID, then downloads the
+#' corresponding FASTA file (.fna) to the specified output directory.
+#' If the file already exists in the output directory, it will not download it again.
+#'
 pull_PATRIC_genome <- function(output_directory, 
                                genome_id) {
   
