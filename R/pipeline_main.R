@@ -5,7 +5,22 @@ source(here::here("R/utils.R"))
 source(here::here("R/constants.R"))
 source(here::here("R/mic.R"))
 
-
+#' Ingest PATRIC Data from FTP
+#'
+#' Downloads and updates the local PATRIC database if a new version is detected on the FTP server.
+#'
+#' @param logger Alogger object used to log the ingestion process.
+#' @param retry An integer specifying the number of retry attempts if ingestion fails. Default is 2.
+#' @param timeout_secs An integer specifying the timeout duration (in seconds) for the download operation. Default is 120.
+#'
+#' @return Returns TRUE if the file has not changed, or the result (logical) of the ingestion success status.
+#'
+#' @details
+#' - Checks whether the remote file has been updated using is_file_updated_in_ftp()
+#' - If the file is new or updated, it attempts to download the PATRIC database up to retry times using MIC::download_patric_db().
+#' - On success, the temporary file is moved to the final data path via replace_file().
+#' - The local WAL (write-ahead log) is updated using update_wal().
+#' - Temporary files are cleaned using clear_temp_folder().
 ingest_patric_data <- function(logger,
                                retry = 2,
                                timeout_secs = 120){
@@ -49,6 +64,27 @@ ingest_patric_data <- function(logger,
   return(status)
 }
 
+#' Ingest PATRIC Genomes for a Microorganism
+#'
+#' Downloads genome files from the PATRIC FTP server for a specified microorganism and set of genome IDs.
+#' Only downloads genomes that have been updated since the last ingestion, with retry attempts on failure.
+#'
+#' @param mo_name A character string with the microorganism name.
+#' @param genome_ids A character vector of genome IDs to ingest.
+#' @param n_genomes_to_ingest Integer specifying how many genomes to ingest; defaults to 10.
+#'   If NA or length zero, or if fewer genomes are available, all genomes will be ingested.
+#' @param logger A logger object used for logging progress and errors.
+#' @param retry Integer number of retry attempts for each genome ingestion (default is 2).
+#' @param timeout_secs Integer timeout (in seconds) for network operations (default is 120).
+#'
+#' @return Invisibly returns NULL. Function is called for its side effects (downloading and logging).
+#'
+#' @details
+#' - Creates microorganism-specific folders for output and temporary files.
+#' - Checks for updates to each genome file on the FTP server before downloading.
+#' - Retries failed downloads up to retry times with a short delay between attempts.
+#' - Updates the WAL (write-ahead log) on successful ingestion.
+#' - Clears temporary folders after ingestion completes.
 ingest_patric_genomes <- function(mo_name,
                                   genome_ids,
                                   n_genomes_to_ingest = 10,
@@ -93,15 +129,14 @@ ingest_patric_genomes <- function(mo_name,
             replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
                          file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
             
-            update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
-            
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
             log4r::info(logger, message_text)
-          }else{
             
+          }else{
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed. but seems like file is empty. No file downloaded -  {genome_ids[[i]]}")
             log4r::info(logger, message_text)
           }
+          update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
           break
         }
         else{
@@ -118,6 +153,25 @@ ingest_patric_genomes <- function(mo_name,
   clear_temp_folder(GENOME_OUTPUT_TEMP_FOLDER)
 }
 
+#' Main Pipeline Function for Data Ingestion
+#'
+#' Executes the complete ingestion pipeline which includes:
+#' - Loading configuration parameters from a YAML file.
+#' - Ingesting the PATRIC database if updated.
+#' - Iterating over specified microorganisms to ingest genome data.
+#'
+#' @details
+#' This function:
+#'  - Creates a timestamped log file and initializes a logger.
+#   - Loads ETL parameters from a YAML configuration file.
+#'  - Calls ingest_patric_data() to update the PATRIC database.
+#'  - For each microorganism listed in the configuration:
+#'       - Reads the PATRIC database for that microorganism.
+#'       - Retrieves genome IDs filtered by MIC data.
+#'       - Calls ingest_patric_genomes() to download genome files.
+#'Logs progress and completion messages.
+#'
+#' @return Invisibly returns NULL. The function is called for its side effects.
 pipeline_main <- function(){
     log_file <- paste0(LOG_FOLDER, "/", LOG_FILE_NAME, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log")
     logger <- log4r::logger(appenders = log4r::file_appender(log_file, append = FALSE))
