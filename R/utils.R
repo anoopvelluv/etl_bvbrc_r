@@ -197,7 +197,7 @@ read_patric_db <- function(patric_db,
   }
   
   # Join PATRIC data with standard mapping on genome_name
-  patric_database<- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
+  patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
   
   # Filter rows matching the standardized microorganism name
   patric_database <- patric_database[patric_database$std_mo_name == mo_name, ]
