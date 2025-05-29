@@ -188,6 +188,8 @@ read_patric_db <- function(patric_db,
   # Load mapping of genome names to standard microorganism names
   mo_standard_mapping <- readRDS(MO_STD_MAPPING)
   
+  mo_standard_mapping$genome_name <- gsub('""', '"', mo_standard_mapping$genome_name)
+  
   #Re-calculate standard mapping file
   if (!(mo_name %in% mo_standard_mapping$std_mo_name)) {
     log4r::info(logger, paste0("Missing ",mo_name," in standard mapping file. Re - calculating standard mapping file."))
@@ -195,7 +197,7 @@ read_patric_db <- function(patric_db,
   }
   
   # Join PATRIC data with standard mapping on genome_name
-  patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
+  patric_database<- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
   
   # Filter rows matching the standardized microorganism name
   patric_database <- patric_database[patric_database$std_mo_name == mo_name, ]
