@@ -16,3 +16,7 @@ GENOME_OUTPUT_FOLDER <- "data/genomes"
 GENOME_OUTPUT_TEMP_FOLDER <- "data/genomes/temp"
 
 MO_STD_MAPPING <- "data/ref/mo_standard_mapping.rds"
+
+AUDIT_LOG <- "data/audit_log.csv"
+
+META_LABEL_CONFIG <- "data/labels/meta_config.yaml"

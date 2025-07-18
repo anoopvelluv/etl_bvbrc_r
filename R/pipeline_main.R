@@ -27,7 +27,8 @@ ingest_patric_data <- function(logger,
                                timeout_secs = 120){
   
   ftp_file_meta <- is_file_updated_in_ftp(PATRIC_FTP_FOLDER,
-                                          PATRIC_FTP_FILE)
+                                          PATRIC_FTP_FILE,
+                                          logger)
   
   if (!isTRUE(ftp_file_meta$change_detected)) {
     log4r::info(logger,"Patric DB : File not updated in server, Skipping Data Ingestion ")
@@ -54,7 +55,8 @@ ingest_patric_data <- function(logger,
     if (isTRUE(status)) {
       log4r::info(logger,paste0("Patric DB :Data Ingested successfully on attempt ", i))
       replace_file(TEMP_PATRIC_PATH, PATRIC_DATA_PATH)
-      update_wal(PATRIC_FTP_FILE, ftp_file_meta$latest_mod_time) 
+      update_wal(PATRIC_FTP_FILE,ftp_file_meta$latest_mod_time)
+      
       break
     } else {
       log4r::info(logger,paste0("Patric DB : Data Ingestion Failed. Retrying... Attempt ", i))
@@ -99,7 +101,6 @@ ingest_patric_genomes <- function(mo_name,
     n_genomes_to_ingest <- length(genome_ids)
   }
   
-  
   #Creating microorganism specific directories
   genome_folders <- setup_genome_folders(GENOME_OUTPUT_FOLDER, GENOME_OUTPUT_TEMP_FOLDER, mo_name)
   GENOME_OUTPUT_FOLDER <- genome_folders$GENOME_OUTPUT_FOLDER
@@ -124,24 +125,26 @@ ingest_patric_genomes <- function(mo_name,
           
           downloaded_file <- file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna"))
           target_path <-  file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
+          output_dest_path <- file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
           
           if (file.exists(downloaded_file)) {
-            
+          
             replace_file(file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna")),
-                         file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna")))
-            
+                         output_dest_path)
+          
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed for {genome_ids[[i]]}. Status: {status_text}")
             log4r::info(logger, message_text)
             
+            audit_pulled_genome_ids(genome_name = mo_name, genome_id = genome_ids[[i]])
           }else{
             message_text <- glue("pull_PATRIC_genome: Genome Ingestion completed. but seems like file is empty. No file downloaded -  {genome_ids[[i]]}")
             log4r::info(logger, message_text)
           }
-          update_wal(paste0(genome_ids[[i]],".fna"), ftp_file_meta$latest_mod_time) 
+          update_wal(paste0(genome_ids[[i]], ".fna"),ftp_file_meta$latest_mod_time)
           break
         }
         else{
-          log4r::info(logger,paste0("pull_PATRIC_genome : Error during ingestion on attempt ", j, ": ", e$message))
+          log4r::info(logger,paste0("pull_PATRIC_genome : Error during ingestion on attempt ", j))
           log4r::info(logger,"Retrying...")
           Sys.sleep(2)  #Wait before retrying
         }
@@ -192,18 +195,26 @@ pipeline_main <- function(){
       
       patric_data <- read_patric_db(patric_db = PATRIC_DATA_PATH,
                                     mo_name = mo_name,
+                                    standard_mapping_file = MO_STD_MAPPING,
+                                    recalculate_std_mapping = TRUE, 
                                     logger)
       
-      genome_ids <- get_genome_ids(database = patric_data,
+      filtered_patric_data <- patric_data %>% filter( antibiotic %in% config$anti_biotics)
+        
+      genome_ids <- get_genome_ids(database = filtered_patric_data,
                                    filter = "MIC")
-      message(paste0("Pulling data for genome : ", mo_name))
-      log4r::info(logger, paste0("Pulling  top ", config$top_n_genomes_to_ingest," genome ids from Patric DB. Micro Organism : ",mo_name))
+      
+      message(paste0("Pulling data for genome : ", mo_name ))
+      log4r::info(logger, paste0("Pulling  top ",
+                                 config$top_n_genomes_to_ingest," genome ids from Patric DB. Micro Organism : ",mo_name))
+      
       ingest_patric_genomes(mo_name,
                             genome_ids,
                             config$top_n_genomes_to_ingest,
                             logger,
                             retry = 2,
                             config$ftp_connection_timeout)
+   
     }
     log4r::info(logger, "Data Ingestion Completed.  ")
     message("Data Ingestion Completed. Please check logs for details")

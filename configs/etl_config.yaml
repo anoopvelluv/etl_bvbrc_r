@@ -1,4 +1,4 @@
-top_n_genomes_to_ingest : 10 
+top_n_genomes_to_ingest : 20
 ftp_connection_timeout : 120
 
 
@@ -11,3 +11,19 @@ micro_organisms :
    - "Clostridioides difficile"
    - "Neisseria meningitidis"
    - "Mycobacterium tuberculosis"
+   
+
+#This is to generate label file  
+anti_biotics : 
+  - "amoxicillin/clavulanic acid"
+  - "amikacin"
+  - "amoxicillin"
+  - "ceftazidime"
+  - "chloramphenicol"
+  - "ciprofloxacin"
+  - "cefepime"
+  - "gentamicin"
+  - "meropenem"
+  - "tigecycline"
+  
+    
