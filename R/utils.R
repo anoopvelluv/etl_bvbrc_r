@@ -1,5 +1,5 @@
 
-library(RCurl)
+library(curl)
 source(here::here("R/constants.R"))
 
 #' Parse FTP Directory Listing Line
@@ -24,6 +24,7 @@ parse_ftp_line <- function(lines, file_name) {
   if (length(parts) < 9) return(NULL)
     filename <- parts[length(parts)]
     date_str <- paste(parts[6:8], collapse = " ")
+    file_size <- suppressWarnings(as.numeric(parts[5]))
   
   # Try parsing with time first, then with year
   mod_time <- suppressWarnings(as.POSIXct(date_str, format = "%b %d %H:%M", tz = "GMT"))
@@ -32,7 +33,7 @@ parse_ftp_line <- function(lines, file_name) {
   }
   if (is.na(mod_time)) return(NULL)
   
-  list(filename = filename, last_modified = mod_time)
+  list(filename = filename, last_modified = mod_time, file_size = file_size)
 }
 
 #' Load WAL (Write-Ahead Log) File
@@ -97,15 +98,32 @@ update_wal <- function(file, mod_date) {
 #' which is loaded from the global variable WAL_PATH. If the file is new or the timestamp has changed,
 #' change_detected is set to TRUE.
 is_file_updated_in_ftp<- function(ftp_dir,
-                           ftp_file){
+                           ftp_file,
+                           logger){
+  # Create a curl handle
+  h <- curl::new_handle()
+  curl::handle_setopt(
+    h,
+    use_ssl = 3,          # same as your example
+    userpwd = "anonymous:" ,  # username & password,
+    timeout = 7200,  # 2 hours
+    connecttimeout = 300,
+    low_speed_limit = 1,
+    low_speed_time  = 3600
+  )
   
   # Get directory listing
   listing <- tryCatch(
     {
-      RCurl::getURL(ftp_dir, dirlistonly = FALSE)
+      res <- curl::curl_fetch_memory(
+        url = ftp_dir,
+        handle = h
+      )
+      rawToChar(res$content)
     },
     error = function(e) {
-      stop("Failed to collect metadata. Exiting.")
+      log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Exiting. command :  RCurl::getURL ",ftp_dir ,e ))
+      stop("Failed to collect metadata from BVBRC. Stopped Execution")
     }
   )
   
@@ -116,7 +134,9 @@ is_file_updated_in_ftp<- function(ftp_dir,
   
   change_detected <- ifelse(nrow(prev_meta) == 0 || prev_meta$last_modified != meta_now$last_modified,TRUE,FALSE)
   
-  return(list(change_detected = change_detected, latest_mod_time = meta_now$last_modified))
+  return(list(change_detected = change_detected,
+              latest_mod_time = meta_now$last_modified,
+              file_size = meta_now$file_size))
 }
 
 #' Clear Temporary Folder or File
@@ -172,38 +192,64 @@ replace_file <- function(src, dest) {
 #'
 #' @details
 #' - Uses AMR::mo_name() to standardize the input microorganism name.
-#' - Loads the database using MIC::load_patric_db().
+#' - Loads the database using  faLearn::load_patric_db().
 #' - Loads a standard mapping file from MO_STD_MAPPING (assumed to be a globally defined path to an RDS file).
 #' - If the standardized name is not found in the mapping, it updates the mapping via update_standard_mapping().
 #' - The database is then joined with the mapping and filtered.
 read_patric_db <- function(patric_db, 
-                           mo_name,
-                           logger) {
+                           mo_name, 
+                           standard_mapping_file,
+                           recalculate_std_mapping = FALSE,
+                           logger = NULL) {
   # Standardize microorganism name
   mo_name <- AMR::mo_name(mo_name)
   
   # Load the PATRIC database
-  patric_database <- MIC::load_patric_db(patric_db)
+  patric_database <- faLearn::load_patric_db(patric_db)
   
-  # Load mapping of genome names to standard microorganism names
-  mo_standard_mapping <- readRDS(MO_STD_MAPPING)
+  # Load the genome-to-standard mapping
+  mo_standard_mapping <- readRDS(standard_mapping_file)
   
+  # Clean up quotes in genome names
   mo_standard_mapping$genome_name <- gsub('""', '"', mo_standard_mapping$genome_name)
   
-  #Re-calculate standard mapping file
-  if (!(mo_name %in% mo_standard_mapping$std_mo_name)) {
-    log4r::info(logger, paste0("Missing ",mo_name," in standard mapping file. Re - calculating standard mapping file."))
+  unique_patric_mo <- na.omit(unique(patric_database$genome_name))
+  unique_std_mapping_mo <- na.omit(unique(mo_standard_mapping$genome_name))
+  
+  if (!all(unique_patric_mo %in% unique_std_mapping_mo)) {
+    missing_items <- setdiff(unique_patric_mo, unique_std_mapping_mo)
+    if(! is.null(logger))
+      log4r::info(logger, paste("Missing genome names in standard mapping:", paste(missing_items, collapse = ", ")))
+  }
+  
+  if(!(mo_name %in% mo_standard_mapping$std_mo_name) & ! is.null(logger)){
+    log4r::info(logger, paste("Missing genome name in std mapping - ", mo_name))
+  }
+  
+  # Recalculate standard mapping if missing or outdated
+  if (recalculate_std_mapping && 
+      (!(mo_name %in% mo_standard_mapping$std_mo_name) ||
+      !all(unique_patric_mo %in% unique_std_mapping_mo) )) {
+    if(! is.null(logger))
+      log4r::info(logger, paste0("Missing ", mo_name, " in standard mapping file. Recalculating mapping..."))
     mo_standard_mapping <- update_standard_mapping(patric_database)
   }
   
-  # Join PATRIC data with standard mapping on genome_name
+  # Join standard mapping to PATRIC DB
   patric_database <- dplyr::left_join(patric_database, mo_standard_mapping, by = "genome_name")
   
-  # Filter rows matching the standardized microorganism name
+  # Filter for standardized organism name
   patric_database <- patric_database[patric_database$std_mo_name == mo_name, ]
   
+  # Rename and clean up columns
+  names(patric_database)[names(patric_database) == "genome_name"] <- "old_genome_name"
+  names(patric_database)[names(patric_database) == "std_mo_name"] <- "genome_name"
+  
+  # Drop old genome name
+  patric_database <- patric_database |> dplyr::select(-old_genome_name)
   return(patric_database)
 }
+
 
 #' Update Standard Microorganism Mapping
 #'
@@ -252,3 +298,43 @@ setup_genome_folders <- function(base_output_folder, base_temp_folder, mo_name) 
     GENOME_OUTPUT_TEMP_FOLDER = genome_temp_folder
   ))
 }
+
+#' Audit and Save Pulled Genome IDs
+#'
+#' This function logs genome names and genome IDs to a CSV file for auditing purposes.
+#' It can either append to an existing file or overwrite it.
+#'
+#' @param genome_name A character vector of genome names.
+#' @param genome_id A character vector of genome IDs corresponding to `genome_name`.
+#' @param file_path A string specifying the path to the CSV file where the data will be saved.
+#' @param append Logical. If TRUE (default), the data will be appended to the existing file. 
+#'               If FALSE, any existing file at `file_path` will be deleted before writing.
+#'
+#' @return Invisibly returns the data frame written to file.
+audit_pulled_genome_ids <- function(genome_name = NULL, genome_id = NULL, file_path = "data/audit_log.csv", append = TRUE) {
+  # Remove file if append is FALSE
+  if (!append && file.exists(file_path)) {
+    file.remove(file_path)
+  }
+  
+  # Create data frame
+  df <- data.frame(
+    ingestion_time = Sys.time(),
+    genome_name = genome_name,
+    genome_id = genome_id,
+    stringsAsFactors = FALSE
+  )
+  
+  col_names <- !file.exists(file_path) 
+  # Append or write new
+  write.table(
+    df,
+    file = file_path,
+    sep = ",",
+    row.names = FALSE,
+    col.names = col_names ,
+    append = append,
+    quote = TRUE
+  )
+}
+
