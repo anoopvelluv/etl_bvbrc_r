@@ -1,4 +1,7 @@
 
+
+source(here::here("R/constants.R"))
+
 #Customized function from MIC package for more control
 
 #' Retrieve Genome IDs from PATRIC Database
@@ -78,10 +81,10 @@ get_genome_ids <- function(taxonomic_name = NULL,
 #' If the file already exists in the output directory, it will not download it again.
 #'
 pull_PATRIC_genome <- function(output_directory, 
-                               genome_id) {
-  
+                               genome_id,
+                               logger) {
   genome_path <- glue::glue(
-    "ftp://ftp.patricbrc.org/genomes/{genome_id}/{genome_id}.fna"
+    "{GENOME_FTP_PATH}/{genome_id}/{genome_id}.fna"
   )
   
   target_path <- file.path(output_directory,
@@ -94,15 +97,26 @@ pull_PATRIC_genome <- function(output_directory,
   } else {
     message(glue::glue("Downloading file..."))
     message(genome_path)
+    
+    handle <- curl::new_handle()
+    curl::handle_setopt(handle,
+                        use_ssl = 3, 
+                        userpwd = "anonymous:",
+                        timeout = 7200,  # 2 hours
+                        connecttimeout = 300,
+                        low_speed_limit = 1,
+                        low_speed_time  = 3600)
+    
     status <- tryCatch(
       {
-        utils::download.file(genome_path,
-                             destfile = target_path,
-                             mode = "wb")
+        curl::curl_download(genome_path,
+                            target_path,
+                            handle = handle, mode = "wb")
         TRUE
       },
       error = function(e) {
-        message(glue::glue("Unable to download {genome_id}"))
+        log4r::info(logger, glue::glue("Unable to download {genome_id}: {e}"))
+        message(glue::glue("Unable to download {genome_id}: {e}"))
         FALSE
       }
     )

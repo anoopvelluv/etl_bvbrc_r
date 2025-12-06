@@ -1,4 +1,4 @@
-
+library(PGSE)
 library(dplyr)
 source(here::here("R/constants.R"))
 
@@ -39,47 +39,58 @@ train_all_models <- function() {
         stringr::str_replace_all("/", "_")
       
       for (k in K_Values) {
-        export_file <- file.path(
-          "data", "output", mo_name_clean, paste0("K", k, "/")
-        )
-        
-        message(paste0("Training started: Microorganism = ", mo_name_clean, 
-                       ", Antibiotic = ", abx_name_clean))
-        message(paste0("label_file: ", label_file))
-        message(paste0("data_dir: ", data_dir))
-        message(paste0("export_file: ", export_file))
-        
-        # Define file paths
-        progress_file <- paste0(export_file, abx_name_clean, "_K", k, ".save")
-        export_result <- paste0(export_file, "result-K", k, "-", abx_name_clean)
-        
-        # Create directory
-        dir.create(export_file, showWarnings = FALSE, recursive = TRUE)
-        
-        # Build arguments for system call
-        args <- c(
-          "--label-file", label_file,
-          "--data-dir", data_dir,
-          "--save-file", progress_file,
-          "--export-file", export_result,
-          "--workers", "8",
-          "--features", "10000",
-          "--dist", "0",
-          "--k", as.character(k),
-          "--target", "70",
-          "--ext", "2",
-          "--lr", "0.001",
-          "--num-rounds", "6000",
-          "--folds", "5",
-          "--ea-max", "64",
-          "--ea-min", "0"
-        )
-        
-        # Run the command
-        system2(command = cmd, args = args)
-        message(paste0("Training completed with K = ", k))
+          export_file <- file.path(
+            "data", "output", mo_name_clean, paste0("K", k, "/")
+          )
+          
+          message(paste0("Training started: Microorganism = ", mo_name_clean, 
+                         ", Antibiotic = ", abx_name_clean))
+          message(paste0("label_file: ", label_file))
+          message(paste0("data_dir: ", data_dir))
+          message(paste0("export_file: ", export_file))
+          
+          # Define file paths
+          progress_file <- paste0(export_file, abx_name_clean, "_K", k, ".save")
+          export_result <- paste0(export_file, "result-K", k, "-", abx_name_clean)
+          
+          # Create directory
+          dir.create(export_file, showWarnings = FALSE, recursive = TRUE)
+  
+          
+          # Build arguments for system call
+          args <- c(
+            "--label-file", label_file,
+            "--data-dir", data_dir,
+            # "--save-file", progress_file,
+            "--export-file", export_result,
+            "--workers", "8",
+            "--features", "10000",
+            "--dist", "0",
+            "--k", as.character(k),
+            "--target", "70",
+            "--ext", "2",
+            "--lr", "0.001",
+            "--num-rounds", "6000",
+            "--folds", "5"
+            # "--ea-max", "64",
+            # "--ea-min", "0"
+          )
+          train_model(args)
+          message(paste0("Training completed with K = ", k))
       }
     }
   }
+}
+
+train_model <-  function(args){
+  
+  command <- paste(
+    "source ~/miniconda3/etc/profile.d/conda.sh &&",
+    "conda activate pgse &&",
+    "pgse-train",
+    paste(args, collapse = " ")
+  )
+  
+  system2("bash", args = c("-c", shQuote(command)))
 }
 train_all_models()

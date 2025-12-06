@@ -1,5 +1,6 @@
 library(dplyr)
 library(yaml)
+
 source(here::here("R/constants.R"))
 source(here::here("R/utils.R"))
 
@@ -73,7 +74,7 @@ main <- function() {
       if (nrow(labels_data_abx) == 0) {
         message(
           paste0("Antibiotic - ", abx, " not found in Patric DB for microorganism ",
-                 genome_name, ". Skipping...")
+                 genome_name, " in selected genome_ids. Skipping...")
         )
         next
       }
@@ -96,6 +97,11 @@ main <- function() {
         label_file = genome_output_file,
         data_dir = file.path("data/genomes", genome_dir)
       )
+      #Convert labels to logarithmic value
+      labels_data_abx <- labels_data_abx %>%    
+                          mutate(
+                            labels = as.numeric(sub("/.*", "",labels)),
+                            labels = log(labels, base = 2))
       
       # Write label file
       write.csv(labels_data_abx, genome_output_file, row.names = FALSE)

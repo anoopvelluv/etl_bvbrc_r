@@ -1,5 +1,5 @@
 
-library(RCurl)
+library(curl)
 source(here::here("R/constants.R"))
 
 #' Parse FTP Directory Listing Line
@@ -24,6 +24,7 @@ parse_ftp_line <- function(lines, file_name) {
   if (length(parts) < 9) return(NULL)
     filename <- parts[length(parts)]
     date_str <- paste(parts[6:8], collapse = " ")
+    file_size <- suppressWarnings(as.numeric(parts[5]))
   
   # Try parsing with time first, then with year
   mod_time <- suppressWarnings(as.POSIXct(date_str, format = "%b %d %H:%M", tz = "GMT"))
@@ -32,7 +33,7 @@ parse_ftp_line <- function(lines, file_name) {
   }
   if (is.na(mod_time)) return(NULL)
   
-  list(filename = filename, last_modified = mod_time)
+  list(filename = filename, last_modified = mod_time, file_size = file_size)
 }
 
 #' Load WAL (Write-Ahead Log) File
@@ -99,15 +100,30 @@ update_wal <- function(file, mod_date) {
 is_file_updated_in_ftp<- function(ftp_dir,
                            ftp_file,
                            logger){
+  # Create a curl handle
+  h <- curl::new_handle()
+  curl::handle_setopt(
+    h,
+    use_ssl = 3,          # same as your example
+    userpwd = "anonymous:" ,  # username & password,
+    timeout = 7200,  # 2 hours
+    connecttimeout = 300,
+    low_speed_limit = 1,
+    low_speed_time  = 3600
+  )
   
   # Get directory listing
   listing <- tryCatch(
     {
-      RCurl::getURL(ftp_dir, dirlistonly = FALSE)
+      res <- curl::curl_fetch_memory(
+        url = ftp_dir,
+        handle = h
+      )
+      rawToChar(res$content)
     },
     error = function(e) {
-      stop("Failed to collect metadata. Please manually delete temp folders")
-      log4r::info(logger,paste0("Patric DB : Failed to collect metadata (Please manually delete temp folder). Exiting. command :  RCurl::getURL ",ftp_dir ))
+      log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Exiting. command :  RCurl::getURL ",ftp_dir ,e ))
+      stop("Failed to collect metadata from BVBRC. Stopped Execution")
     }
   )
   
@@ -118,7 +134,9 @@ is_file_updated_in_ftp<- function(ftp_dir,
   
   change_detected <- ifelse(nrow(prev_meta) == 0 || prev_meta$last_modified != meta_now$last_modified,TRUE,FALSE)
   
-  return(list(change_detected = change_detected, latest_mod_time = meta_now$last_modified))
+  return(list(change_detected = change_detected,
+              latest_mod_time = meta_now$last_modified,
+              file_size = meta_now$file_size))
 }
 
 #' Clear Temporary Folder or File
@@ -174,7 +192,7 @@ replace_file <- function(src, dest) {
 #'
 #' @details
 #' - Uses AMR::mo_name() to standardize the input microorganism name.
-#' - Loads the database using MIC::load_patric_db().
+#' - Loads the database using  faLearn::load_patric_db().
 #' - Loads a standard mapping file from MO_STD_MAPPING (assumed to be a globally defined path to an RDS file).
 #' - If the standardized name is not found in the mapping, it updates the mapping via update_standard_mapping().
 #' - The database is then joined with the mapping and filtered.
@@ -187,7 +205,7 @@ read_patric_db <- function(patric_db,
   mo_name <- AMR::mo_name(mo_name)
   
   # Load the PATRIC database
-  patric_database <- MIC::load_patric_db(patric_db)
+  patric_database <- faLearn::load_patric_db(patric_db)
   
   # Load the genome-to-standard mapping
   mo_standard_mapping <- readRDS(standard_mapping_file)

@@ -7,9 +7,9 @@ PATRIC_DATA_PATH <- "data/patric_db.txt"
 TEMP_PATRIC_PATH <- "data/temp/patric_db.txt"
 
 
-PATRIC_FTP_FOLDER <- "ftp://ftp.bvbrc.org/RELEASE_NOTES/"
+PATRIC_FTP_FOLDER <- "ftp://ftp.bv-brc.org/RELEASE_NOTES/"
 PATRIC_FTP_FILE <- "PATRIC_genomes_AMR.txt"
-GENOME_FTP_PATH <- "ftp://ftp.patricbrc.org/genomes/"
+GENOME_FTP_PATH <- "ftp://ftp.bv-brc.org/genomes/"
 
 
 GENOME_OUTPUT_FOLDER <- "data/genomes"
@@ -20,3 +20,5 @@ MO_STD_MAPPING <- "data/ref/mo_standard_mapping.rds"
 AUDIT_LOG <- "data/audit_log.csv"
 
 META_LABEL_CONFIG <- "data/labels/meta_config.yaml"
+
+#dataextractbvbrc@2025

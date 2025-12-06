@@ -1,16 +1,15 @@
-top_n_genomes_to_ingest : 20
-ftp_connection_timeout : 120
+top_n_genomes_to_ingest : 300
 
 
 micro_organisms :
-   - "Escherichia coli"
-   - "Staphylococcus aureus"
-   - "Streptococcus pneumoniae"
-   - "Pseudomonas aeruginosa"
-   - "Klebsiella pneumoniae"
-   - "Clostridioides difficile"
-   - "Neisseria meningitidis"
-   - "Mycobacterium tuberculosis"
+  - "Escherichia coli"
+   # - "Staphylococcus aureus"
+   # - "Streptococcus pneumoniae"
+   # - "Pseudomonas aeruginosa"
+   # - "Klebsiella pneumoniae"
+   # - "Clostridioides difficile"
+   # - "Neisseria meningitidis"
+   # - "Mycobacterium tuberculosis"
    
 
 #This is to generate label file  
