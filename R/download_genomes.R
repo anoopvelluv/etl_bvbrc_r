@@ -1,4 +1,3 @@
-source("renv/activate.R")
 library(dplyr)
 library(MIC)
 library(glue)
