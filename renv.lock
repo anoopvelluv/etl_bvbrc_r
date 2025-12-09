@@ -232,8 +232,8 @@
     "S4Vectors": {
       "Package": "S4Vectors",
       "Version": "0.40.2",
-      "Source": "Repository",
-      "Repository": "https://bioconductor.org/packages/3.18/bioc",
+      "Source": "Bioconductor",
+      "Repository": "Bioconductor 3.18",
       "Requirements": [
         "BiocGenerics",
         "R",
