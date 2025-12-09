@@ -1,6 +1,9 @@
-*.log
 *.txt
 *.fna
 .DS_Store
 data/*
 .Rproj.user
+wal/*
+logs/*
+log/*
+!logs/.gitkeep

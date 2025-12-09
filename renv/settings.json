@@ -1,4 +1,5 @@
 {
+  "bioconductor.version": null,
   "external.libraries": [],
   "ignored.packages": [],
   "package.dependency.fields": [
