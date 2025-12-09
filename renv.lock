@@ -3,28 +3,8 @@
     "Version": "4.3.1",
     "Repositories": [
       {
-        "Name": "BioCsoft",
-        "URL": "https://bioconductor.org/packages/3.18/bioc"
-      },
-      {
-        "Name": "BioCann",
-        "URL": "https://bioconductor.org/packages/3.18/data/annotation"
-      },
-      {
-        "Name": "BioCexp",
-        "URL": "https://bioconductor.org/packages/3.18/data/experiment"
-      },
-      {
-        "Name": "BioCworkflows",
-        "URL": "https://bioconductor.org/packages/3.18/workflows"
-      },
-      {
-        "Name": "BioCbooks",
-        "URL": "https://bioconductor.org/packages/3.18/books"
-      },
-      {
         "Name": "CRAN",
-        "URL": "https://packagemanager.posit.co/cran/latest"
+        "URL": "https://cran.r-project.org"
       }
     ]
   },
@@ -118,7 +98,8 @@
     "GenomeInfoDbData": {
       "Package": "GenomeInfoDbData",
       "Version": "1.2.11",
-      "Source": "Bioconductor",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.18/data/annotation",
       "Requirements": [
         "R"
       ],
@@ -127,7 +108,8 @@
     "IRanges": {
       "Package": "IRanges",
       "Version": "2.36.0",
-      "Source": "Bioconductor",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.18/bioc",
       "Requirements": [
         "BiocGenerics",
         "R",
@@ -161,11 +143,12 @@
     },
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.5-4.1",
+      "Version": "1.6-5",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
+        "grDevices",
         "graphics",
         "grid",
         "lattice",
@@ -173,7 +156,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "38082d362d317745fb932e13956dccbb"
+      "Hash": "8c7115cd3a0e048bda2a7cd110549f7a"
     },
     "PGSE": {
       "Package": "PGSE",
@@ -249,8 +232,8 @@
     "S4Vectors": {
       "Package": "S4Vectors",
       "Version": "0.40.2",
-      "Source": "Bioconductor",
-      "Repository": "Bioconductor 3.18",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.18/bioc",
       "Requirements": [
         "BiocGenerics",
         "R",
@@ -275,7 +258,8 @@
     "XVector": {
       "Package": "XVector",
       "Version": "0.42.0",
-      "Source": "Bioconductor",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.18/bioc",
       "Requirements": [
         "BiocGenerics",
         "IRanges",
@@ -1099,8 +1083,8 @@
     "zlibbioc": {
       "Package": "zlibbioc",
       "Version": "1.48.2",
-      "Source": "Bioconductor",
-      "Repository": "Bioconductor 3.18",
+      "Source": "Repository",
+      "Repository": "https://bioconductor.org/packages/3.18/bioc",
       "Hash": "2344be62c2da4d9e9942b5d8db346e59"
     }
   }
