@@ -6,6 +6,19 @@ source(here::here("R/utils.R"))
 source(here::here("R/constants.R"))
 source(here::here("R/mic.R"))
 
+
+log_file <- paste0(LOG_FOLDER, "/", LOG_FILE_NAME, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log")
+logger <- log4r::logger(appenders = log4r::file_appender(log_file, append = FALSE))
+
+#load Parameters
+config = yaml::yaml.load_file(ETL_CONFIG_FILE)
+log4r::info(logger, paste0("Loaded Parameters \n",yaml::as.yaml(config)))
+
+# Select config automatically
+env <- if(is_hpc()) "prod" else "dev"
+app_config <- config[[env]]
+log4r::info(logger, paste("Using config for:", env))
+
 #' Ingest PATRIC Data from FTP
 #'
 #' Downloads and updates the local PATRIC database if a new version is detected on the FTP server.
@@ -54,7 +67,7 @@ ingest_patric_data <- function(logger,
     # Log result and exit loop if successful
     if (isTRUE(status)) {
       log4r::info(logger,paste0("Patric DB :Data Ingested successfully on attempt ", i))
-      replace_file(TEMP_PATRIC_PATH, PATRIC_DATA_PATH)
+      replace_file(TEMP_PATRIC_PATH, app_config$PATRIC_DATA_PATH)
       update_wal(PATRIC_FTP_FILE,ftp_file_meta$latest_mod_time)
       
       break
@@ -99,7 +112,7 @@ ingest_patric_genomes <- function(mo_name,
   }
   
   #Creating microorganism specific directories
-  genome_folders <- setup_genome_folders(GENOME_OUTPUT_FOLDER, GENOME_OUTPUT_TEMP_FOLDER, mo_name)
+  genome_folders <- setup_genome_folders(app_config$GENOME_OUTPUT_FOLDER, GENOME_OUTPUT_TEMP_FOLDER, mo_name)
   GENOME_OUTPUT_FOLDER <- genome_folders$GENOME_OUTPUT_FOLDER
   GENOME_OUTPUT_TEMP_FOLDER <- genome_folders$GENOME_OUTPUT_TEMP_FOLDER
     
@@ -129,8 +142,8 @@ ingest_patric_genomes <- function(mo_name,
         if(isTRUE(status)){
           
           downloaded_file <- file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna"))
-          target_path <-  file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
-          output_dest_path <- file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
+          target_path <-  file.path(app_config$GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
+          output_dest_path <- file.path(app_config$GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
           
           if (file.exists(downloaded_file)) {
           
@@ -188,12 +201,6 @@ ingest_patric_genomes <- function(mo_name,
 #'
 #' @return Invisibly returns NULL. The function is called for its side effects.
 pipeline_main <- function(){
-    log_file <- paste0(LOG_FOLDER, "/", LOG_FILE_NAME, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log")
-    logger <- log4r::logger(appenders = log4r::file_appender(log_file, append = FALSE))
-    
-    # #load Parameters
-    config = yaml::yaml.load_file(ETL_CONFIG_FILE)
-    log4r::info(logger, paste0("Loaded Parameters \n",yaml::as.yaml(config)))
     
     #Patric DB Ingestion Logic : location : PATRIC_DATA_PATH ############### 
     ingest_patric_data(logger,
@@ -203,7 +210,7 @@ pipeline_main <- function(){
     #Genome Ingestion Logic###############
     for(mo_name in config$micro_organisms){
       
-      patric_data <- read_patric_db(patric_db = PATRIC_DATA_PATH,
+      patric_data <- read_patric_db(patric_db = app_config$PATRIC_DATA_PATH,
                                     mo_name = mo_name,
                                     standard_mapping_file = MO_STD_MAPPING,
                                     recalculate_std_mapping = TRUE, 

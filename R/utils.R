@@ -338,3 +338,19 @@ audit_pulled_genome_ids <- function(genome_name = NULL, genome_id = NULL, file_p
   )
 }
 
+
+# Function to detect HPC / prod environment
+is_hpc <- function() {
+  # Example checks:
+  # 1. SLURM job variable exists
+  if(!is.na(Sys.getenv("SLURM_JOB_ID", unset = NA))) return(TRUE)
+  
+  # 2. PBS job variable exists
+  if(!is.na(Sys.getenv("PBS_JOBID", unset = NA))) return(TRUE)
+  
+  # 3. Check hostname pattern (adjust as per your HPC cluster)
+  hostname <- Sys.info()[["nodename"]]
+  if(grepl("compute|hpc|cluster", hostname, ignore.case = TRUE)) return(TRUE)
+  
+  return(FALSE)
+}
