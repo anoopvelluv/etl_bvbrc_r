@@ -31,6 +31,6 @@ dev:
   GENOME_OUTPUT_FOLDER: "data/genomes"
 
 prod:  #HPC Cluster
-  PATRIC_DATA_PATH: "/mnt/disk1/bvbrc_etl_data/patric_db.txt"
+  PATRIC_DATA_PATH: "/mnt/disk1/bvbrc_etl_data/patric_db/patric_db.txt"
   GENOME_OUTPUT_FOLDER: "/mnt/disk1/bvbrc_etl_data/genomes"
 

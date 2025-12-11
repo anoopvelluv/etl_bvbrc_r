@@ -142,8 +142,7 @@ ingest_patric_genomes <- function(mo_name,
         if(isTRUE(status)){
           
           downloaded_file <- file.path(GENOME_OUTPUT_TEMP_FOLDER, paste0(genome_ids[[i]],".fna"))
-          target_path <-  file.path(app_config$GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
-          output_dest_path <- file.path(app_config$GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
+          output_dest_path <- file.path(GENOME_OUTPUT_FOLDER, paste0(genome_ids[[i]],".fna"))
           
           if (file.exists(downloaded_file)) {
           
