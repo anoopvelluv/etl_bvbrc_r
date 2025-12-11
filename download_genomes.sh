@@ -8,7 +8,6 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=3-00:00:00
-#SBATCH --array=0-7
 
 date
 hostname
