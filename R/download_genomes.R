@@ -6,9 +6,7 @@ source(here::here("R/utils.R"))
 source(here::here("R/constants.R"))
 source(here::here("R/mic.R"))
 
-
-log_file <- paste0(LOG_FOLDER, "/", LOG_FILE_NAME, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".log")
-logger <- log4r::logger(appenders = log4r::file_appender(log_file, append = FALSE))
+logger <- setup_logging(LOG_FOLDER, LOG_FILE_NAME)
 
 #load Parameters
 config = yaml::yaml.load_file(ETL_CONFIG_FILE)

@@ -339,7 +339,15 @@ audit_pulled_genome_ids <- function(genome_name = NULL, genome_id = NULL, file_p
 }
 
 
-# Function to detect HPC / prod environment
+#' Detect Whether the Environment is an HPC Cluster (Production)
+#'
+#' This function attempts to determine whether the current R session
+#' is running on a High-Performance Computing (HPC) cluster.  
+#' It checks for common environment variables used by job schedulers
+#' (e.g., SLURM, PBS) and hostname patterns often found on compute nodes.
+#'
+#' This can be used to automatically switch between *development* and
+#' *production* configurations depending on the environment.
 is_hpc <- function() {
   # Example checks:
   # 1. SLURM job variable exists
@@ -353,4 +361,27 @@ is_hpc <- function() {
   if(grepl("compute|hpc|cluster", hostname, ignore.case = TRUE)) return(TRUE)
   
   return(FALSE)
+}
+
+
+#' Set Up Logging Directory and Create a Logger
+#'
+#' This function ensures that a specified log directory exists and then
+#' creates a log file inside that directory using the \pkg{log4r} package.
+#' The log filename will include a timestamp for easy identification.
+#'
+setup_logging <- function(log_folder, log_file_name = "app") {
+  # Create directory if needed
+  dir.create(log_folder, recursive = TRUE, showWarnings = FALSE)
+  
+  # Build full log file path
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  log_file <- file.path(log_folder, paste0(log_file_name, "_", timestamp, ".log"))
+  
+  # Create logger
+  logger <- log4r::logger(
+    appenders = log4r::file_appender(log_file, append = FALSE)
+  )
+  
+  return(logger)
 }
