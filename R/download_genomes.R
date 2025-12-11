@@ -37,6 +37,8 @@ log4r::info(logger, paste("Using config for:", env))
 #' - Temporary files are cleaned using clear_temp_folder().
 ingest_patric_data <- function(logger,
                                retry = 2){
+  
+  print("Calling Me :( Again ")
 
   ftp_file_meta <- is_file_updated_in_ftp(PATRIC_FTP_FOLDER,
                                           PATRIC_FTP_FILE,
