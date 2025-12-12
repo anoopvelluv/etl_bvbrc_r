@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH -D ./
 #SBATCH --export=ALL
-#SBATCH -J genomes_download
+#SBATCH -J pgse_training
 #SBATCH -p local
-#SBATCH -o slurm_out/slurm-genomes-download-%A_%a.out
+#SBATCH -o slurm_out/slurm-pgse-training-%A_%a.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G

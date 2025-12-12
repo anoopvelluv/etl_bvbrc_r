@@ -1,6 +1,8 @@
 library(PGSE)
 library(dplyr)
+
 source(here::here("R/constants.R"))
+source(here::here("R/utils.R"))
 
 # Load Parameters
 main_config <- yaml::yaml.load_file(ETL_CONFIG_FILE)
