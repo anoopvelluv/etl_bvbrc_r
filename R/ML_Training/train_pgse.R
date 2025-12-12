@@ -2,7 +2,13 @@ library(PGSE)
 library(dplyr)
 source(here::here("R/constants.R"))
 
-config = yaml::yaml.load_file(META_LABEL_CONFIG)
+# Load Parameters
+main_config <- yaml::yaml.load_file(ETL_CONFIG_FILE)
+# Select config automatically
+env <- if(is_hpc()) "prod" else "dev"
+app_config <- main_config[[env]]
+
+config = yaml::yaml.load_file(file.path(app_config$LABELS_OUTPUT_FOLDER,META_LABEL_FILE))
 K_Values = c(6, 8, 10)
 
 #' This function  iterates through a set of microorganism and antibiotic

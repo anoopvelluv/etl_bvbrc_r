@@ -1,7 +1,7 @@
 ETL_CONFIG_FILE <- "configs/etl_config.yaml"
 LOG_FOLDER <-  "logs"
-LOG_FILE_NAME <-  "app_logs.log"
-LOG_FILE_NAME_LABELS <-  "app_logs_pgse_labels.log"
+LOG_FILE_NAME <-  "app_logs"
+LOG_FILE_NAME_LABELS <-  "app_logs_pgse_labels"
 WAL_PATH <- "wal/wal_log.csv"
 
 
