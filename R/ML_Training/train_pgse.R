@@ -48,7 +48,7 @@ train_all_models <- function() {
       
       for (k in K_Values) {
           export_file <- file.path(
-            "data", "output", mo_name_clean, paste0("K", k, "/")
+            app_config$PGSE_MODELS_OUTPUT, mo_name_clean, paste0("K", k, "/")
           )
           
           message(paste0("Training started: Microorganism = ", mo_name_clean, 

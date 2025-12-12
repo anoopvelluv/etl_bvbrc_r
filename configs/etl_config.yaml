@@ -30,9 +30,11 @@ dev:
   PATRIC_DATA_PATH: "data/patric_db.txt"
   GENOME_OUTPUT_FOLDER: "data/genomes"
   LABELS_OUTPUT_FOLDER: "data/labels"
+  PGSE_MODELS_OUTPUT: "data/pgse/output"
 
 prod:  #HPC Cluster
   PATRIC_DATA_PATH: "/mnt/disk1/bvbrc_etl_data/patric_db/patric_db.txt"
   GENOME_OUTPUT_FOLDER: "/mnt/disk1/bvbrc_etl_data/genomes"
   LABELS_OUTPUT_FOLDER: "/mnt/disk1/bvbrc_etl_data/labels"
+  PGSE_MODELS_OUTPUT: "/mnt/disk1/bvbrc_etl_data/pgse/output"
 
