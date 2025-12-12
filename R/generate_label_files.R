@@ -63,7 +63,7 @@ main <- function() {
     
     # Read labels data
     labels_data <- read_patric_db(
-      PATRIC_DATA_PATH,
+      app_config$PATRIC_DATA_PATH,
       genome_name,
       MO_STD_MAPPING
     )
