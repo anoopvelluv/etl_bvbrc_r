@@ -130,12 +130,17 @@ is_file_updated_in_ftp<- function(ftp_dir,
           log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Exiting. command :  RCurl::getURL ",ftp_dir ,e ))
           stop("Failed to collect metadata from BVBRC. Stopped Execution")
         }else{
-          log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Retrying (attempt = ",attempt,"). command :  RCurl::getURL ",ftp_dir ,e ))
-          attempt <- attempt + 1
-          Sys.sleep(sleep_sec)
+          log4r::info(logger,paste0("Patric DB : Failed to collect metadata.command :  RCurl::getURL ",ftp_dir, e))
         }
       }
     )
+    if (!is.null(listing)) {
+      break
+    }else{
+      log4r::info(logger,paste0("Retrying (attempt = ",attempt,")"))
+      attempt <- attempt + 1
+      Sys.sleep(sleep_sec)
+    }
   }
   
   meta_now <- parse_ftp_line(listing, ftp_file)
