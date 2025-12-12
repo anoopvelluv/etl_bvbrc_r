@@ -28,6 +28,12 @@ main <- function() {
   # Load Parameters
   config <- yaml::yaml.load_file(ETL_CONFIG_FILE)
   
+  # Select config automatically
+  env <- if(is_hpc()) "prod" else "dev"
+  app_config <- config[[env]]
+  log4r::info(logger, paste("Using config for:", env))
+  
+  
   # Read Audit Log
   audit_logs <- read.csv(AUDIT_LOG)
   stopifnot(nrow(audit_logs) > 0)
@@ -86,7 +92,7 @@ main <- function() {
         stringr::str_replace_all("/", "_")
       
       output_file_name <- paste0(genome_dir, "-", abx_dir, "_labels.csv")
-      genome_output_folder <- file.path("data/labels/", genome_dir, abx_dir)
+      genome_output_folder <- file.path(app_config$LABELS_OUTPUT_FOLDER, genome_dir, abx_dir)
       genome_output_file <- file.path(genome_output_folder, output_file_name)
       
       # Create output directory
@@ -95,7 +101,7 @@ main <- function() {
       # Save metadata
       abx_meta_data[[abx]] <- list(
         label_file = genome_output_file,
-        data_dir = file.path("data/genomes", genome_dir)
+        data_dir = file.path(app_config$GENOME_OUTPUT_FOLDER, genome_dir)
       )
       #Convert labels to logarithmic value
       labels_data_abx <- labels_data_abx %>%    
@@ -116,7 +122,7 @@ main <- function() {
   # Create YAML output config
   meta_yaml[["micro-organism"]] <- mo_meta_data
   yaml_output <- yaml::as.yaml(meta_yaml)
-  writeLines(yaml_output, "data/labels/meta_config.yaml")
+  writeLines(yaml_output, file.path(app_config$LABELS_OUTPUT_FOLDER,META_LABEL_FILE))
 }
 
 # Run the main function

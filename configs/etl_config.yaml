@@ -29,8 +29,10 @@ anti_biotics :
 dev:
   PATRIC_DATA_PATH: "data/patric_db.txt"
   GENOME_OUTPUT_FOLDER: "data/genomes"
+  LABELS_OUTPUT_FOLDER: "data/labels"
 
 prod:  #HPC Cluster
   PATRIC_DATA_PATH: "/mnt/disk1/bvbrc_etl_data/patric_db/patric_db.txt"
   GENOME_OUTPUT_FOLDER: "/mnt/disk1/bvbrc_etl_data/genomes"
+  LABELS_OUTPUT_FOLDER: "/mnt/disk1/bvbrc_etl_data/labels"
 
