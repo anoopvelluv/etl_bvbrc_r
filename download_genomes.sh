@@ -9,51 +9,17 @@
 #SBATCH --mem=32G
 #SBATCH --time=3-00:00:00
 
+set -e
 date
 hostname
-echo "Starting genome downloads"
 
 cd ~/etl_bvbrc_r/
 
-###############################################
-# SET SAFE LIBRARY PATHS FOR HPC
-###############################################
+source hpc_setup.sh
 
-# Your own R library (avoid system dirs)
-export R_LIBS_USER=$HOME/R/library
-mkdir -p "$R_LIBS_USER"
+echo "Restoring renv..."
+Rscript --vanilla -e "renv::restore(prompt = FALSE, rebuild = TRUE)"
 
-# renv cache in your home directory
-export RENV_PATHS_CACHE=$HOME/.cache/R/renv
-mkdir -p "$RENV_PATHS_CACHE"
-
-
-echo "Using R user library: $R_LIBS_USER"
-echo "Using renv cache: $RENV_PATHS_CACHE"
-
-###############################################
-# OPTIONAL: Clean renv cache
-###############################################
-echo "Cleaning renv cache..."
-rm -rf
-rm -rf $RENV_PATHS_CACHE/source/*
-
-
-###############################################
-#  Restore renv environment
-###############################################
-echo "Restoring renv environment..."
-
-Rscript --vanilla -e '
-Sys.setenv(R_INSTALL_STAGED = FALSE)
-# FORCE renv to use project library, not system
-Sys.setenv(RENV_PATHS_LIBRARY = file.path(getwd(), "renv/library"))
-
-if (!requireNamespace("renv", quietly = TRUE)) {
-    install.packages("renv", repos = "https://cloud.r-project.org")
-}
-renv::restore(prompt = FALSE, rebuild = TRUE)
-'
 
 ###############################################
 # Run main job

@@ -99,7 +99,9 @@ update_wal <- function(file, mod_date) {
 #' change_detected is set to TRUE.
 is_file_updated_in_ftp<- function(ftp_dir,
                            ftp_file,
-                           logger){
+                           logger,
+                           retry = 3,
+                           sleep_sec = 5){
   # Create a curl handle
   h <- curl::new_handle()
   curl::handle_setopt(
@@ -112,20 +114,29 @@ is_file_updated_in_ftp<- function(ftp_dir,
     low_speed_time  = 3600
   )
   
-  # Get directory listing
-  listing <- tryCatch(
-    {
-      res <- curl::curl_fetch_memory(
-        url = ftp_dir,
-        handle = h
-      )
-      rawToChar(res$content)
-    },
-    error = function(e) {
-      log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Exiting. command :  RCurl::getURL ",ftp_dir ,e ))
-      stop("Failed to collect metadata from BVBRC. Stopped Execution")
-    }
-  )
+  attempt = 1
+  while (attempt <= retry) {
+    # Get directory listing
+    listing <- tryCatch(
+      {
+        res <- curl::curl_fetch_memory(
+          url = ftp_dir,
+          handle = h
+        )
+        rawToChar(res$content)
+      },
+      error = function(e) {
+        if(attempt >= retry){
+          log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Exiting. command :  RCurl::getURL ",ftp_dir ,e ))
+          stop("Failed to collect metadata from BVBRC. Stopped Execution")
+        }else{
+          log4r::info(logger,paste0("Patric DB : Failed to collect metadata. Retrying (attempt = ",attempt,"). command :  RCurl::getURL ",ftp_dir ,e ))
+          attempt <- attempt + 1
+          Sys.sleep(sleep_sec)
+        }
+      }
+    )
+  }
   
   meta_now <- parse_ftp_line(listing, ftp_file)
   
