@@ -25,6 +25,9 @@ source(here::here("R/utils.R"))
 #' saving CSV label files and a metadata YAML file to disk.
 #'
 main <- function() {
+  
+  logger <- setup_logging(LOG_FOLDER, LOG_FILE_NAME_LABELS)
+  
   # Load Parameters
   config <- yaml::yaml.load_file(ETL_CONFIG_FILE)
   
@@ -50,6 +53,13 @@ main <- function() {
   for (row in seq_len(nrow(genomes_ingested))) {
     genome_name <- genomes_ingested$genome_name[row]
     genome_ids  <- genomes_ingested$genome_ids[[row]]
+    
+    log4r::info(
+      logger,
+      paste0(
+        "genome_name: ", genome_name,
+        " genome_ids_count: ", length(genome_ids)
+      ))
     
     # Read labels data
     labels_data <- read_patric_db(
@@ -78,7 +88,7 @@ main <- function() {
       colnames(labels_data_abx) <- c("labels", "files")
       
       if (nrow(labels_data_abx) == 0) {
-        message(
+        log4r::info(logger, 
           paste0("Antibiotic - ", abx, " not found in Patric DB for microorganism ",
                  genome_name, " in selected genome_ids. Skipping...")
         )
@@ -123,6 +133,8 @@ main <- function() {
   meta_yaml[["micro-organism"]] <- mo_meta_data
   yaml_output <- yaml::as.yaml(meta_yaml)
   writeLines(yaml_output, file.path(app_config$LABELS_OUTPUT_FOLDER,META_LABEL_FILE))
+  
+  log4r::info(logger, "Labels Generated")
 }
 
 # Run the main function
