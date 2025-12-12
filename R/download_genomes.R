@@ -103,7 +103,8 @@ ingest_patric_genomes <- function(mo_name,
                                   genome_ids,
                                   n_genomes_to_ingest = 10,
                                   logger,
-                                  retry = 2){
+                                  retry = 3,
+                                  sleep_sec = 5){
   
   if (is.na(n_genomes_to_ingest) || length(n_genomes_to_ingest) == 0 || length(genome_ids) < n_genomes_to_ingest ) {
     n_genomes_to_ingest <- length(genome_ids)
@@ -161,7 +162,7 @@ ingest_patric_genomes <- function(mo_name,
         else{
           log4r::info(logger,"Retrying...")
           log4r::info(logger,paste0("pull_PATRIC_genome : Error during ingestion on attempt ", j))
-          Sys.sleep(2)  #Wait before retrying
+          Sys.sleep(sleep_sec)  #Wait before retrying
         }
       }
       if(isFALSE(status)){
